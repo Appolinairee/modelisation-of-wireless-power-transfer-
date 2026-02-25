@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WPT — Modélisation 3D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <script type="importmap">
+      { "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      } }
+    </script>
+  </head>
+  <body>
+
+    <!-- ═══ BLOC 1 — SCÈNE 3D ═══ -->
+    <div id="scene3d">
+      <canvas id="canvas"></canvas>
+
+      <div id="module-switcher">
+        <span id="title-logo">WPT — Transfert d'Énergie Sans Fil</span>
+        <span id="badge">ABC2 · SG25 — École Centrale Casablanca — 2026</span>
+      </div>
+
+      <div id="info-panel">
+        <div id="info-title">COUPLAGE INDUCTIF — PRINCIPE</div>
+        <div id="info-body">
+          Le GBF alimente L₁ (émetteur) par un courant alternatif.<br/>
+          L₁ génère un champ magnétique <strong>B(t)</strong> qui se propage dans l'espace.<br/>
+          L₂ (récepteur) capte ce flux variable → f.é.m. induite → courant dans R₂.
+        </div>
+        <div id="info-formula">M = μ₀π²N₁N₂a²b² / [2(a²+d²)^(3/2)]</div>
+      </div>
+
+      <div id="controls">
+        <button class="btn" id="btn-wire"  onclick="window.toggleWire()">⬚ Filaire</button>
+        <button class="btn" id="btn-rot"   onclick="window.toggleRot()">↻ Auto</button>
+        <button class="btn" id="btn-field" onclick="window.toggleField()">⌁ Champ B</button>
+        <button class="btn"               onclick="window.resetView()">⟳ Reset</button>
+      </div>
+
+      <div id="hint">Clic gauche → Rotation<br/>Scroll → Zoom<br/>Clic droit → Déplacer</div>
+
+      <div id="legend" class="legend">
+        <div class="legend-title">LÉGENDE</div>
+        <div class="legend-item"><span class="lnum" style="border-color:#f4a030;color:#f4a030">GBF</span>Générateur 10 V ~</div>
+        <div class="legend-item"><span class="lnum" style="border-color:#e05050;color:#e05050">R</span>Résistances R₁, R₂</div>
+        <div class="legend-item"><span class="lnum" style="border-color:#d47820;color:#d47820">L₁</span>Bobine émettrice (cuivre)</div>
+        <div class="legend-item"><span class="lnum" style="border-color:#20c860;color:#20c860">L₂</span>Bobine réceptrice (émeraude)</div>
+        <div class="legend-item"><span class="lnum" style="border-color:#80ffb0;color:#80ffb0">Rₗ</span>Charge / LED réceptrice</div>
+        <div class="legend-item"><span class="lblock" style="background:rgba(96,200,255,0.55)"></span>Champ B(t) — anneaux pulsants</div>
+        <div class="legend-item" style="margin-top:6px;font-size:9px;color:rgba(192,232,96,0.7)">⟵  SANS CONTACT PHYSIQUE  ⟶</div>
+      </div>
+    </div><!-- /#scene3d -->
+
+
+    <!-- ═══ BLOC 2 — SCHÉMA CIRCUIT 2D + SLIDERS ═══ -->
+    <div id="circuit-section">
+
+      <div id="svg-wrap">
+        <div class="section-header">SCHÉMA ÉQUIVALENT — COUPLAGE INDUCTIF</div>
+        <svg id="circuit-svg" viewBox="0 0 820 260" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <div id="calc-panel">
+        <div class="section-header">PARAMÈTRES &amp; CALCULS</div>
+
+        <div class="slider-grid">
+          <div class="slider-row">
+            <label>Distance r</label>
+            <input type="range" id="sl-r"  min="1" max="20"   step="0.5"  value="3" />
+            <span class="sl-val" id="vr">3 cm</span>
+          </div>
+          <div class="slider-row">
+            <label>Fréquence f</label>
+            <input type="range" id="sl-f"  min="100" max="10000" step="100" value="1000" />
+            <span class="sl-val" id="vf">1000 Hz</span>
+          </div>
+          <div class="slider-row">
+            <label>Spires N₁</label>
+            <input type="range" id="sl-n1" min="100" max="6000" step="100" value="6000" />
+            <span class="sl-val" id="vn1">6000</span>
+          </div>
+          <div class="slider-row">
+            <label>Spires N₂</label>
+            <input type="range" id="sl-n2" min="100" max="6000" step="100" value="6000" />
+            <span class="sl-val" id="vn2">6000</span>
+          </div>
+          <div class="slider-row">
+            <label>Rayon a (L₁)</label>
+            <input type="range" id="sl-a"  min="1" max="10"   step="0.5"  value="3" />
+            <span class="sl-val" id="va">3 cm</span>
+          </div>
+          <div class="slider-row">
+            <label>Rayon b (L₂)</label>
+            <input type="range" id="sl-b"  min="1" max="10"   step="0.5"  value="3" />
+            <span class="sl-val" id="vb">3 cm</span>
+          </div>
+        </div>
+
+        <div class="results-grid">
+          <div class="result-card">
+            <div class="rc-label">Inductance mutuelle M</div>
+            <div class="rc-formula">μ₀π²N₁N₂a²b² / 2(a²+r²)^(3/2)</div>
+            <div class="rc-value" id="out-M">—</div>
+          </div>
+          <div class="result-card">
+            <div class="rc-label">Tension reçue U₂</div>
+            <div class="rc-formula">U₂ = ωM · I₁  (I₁ = V₁/R₁)</div>
+            <div class="rc-value" id="out-U2">—</div>
+          </div>
+          <div class="result-card">
+            <div class="rc-label">Rendement η</div>
+            <div class="rc-formula">ω²M²R<sub>L</sub> / [R₁(R₂+R<sub>L</sub>)² + ω²M²(R₂+R<sub>L</sub>)]</div>
+            <div class="rc-value" id="out-eta">—</div>
+          </div>
+          <div class="result-card led-card" id="led-card">
+            <div class="rc-label">LED / Charge</div>
+            <div class="rc-formula">Seuil η &gt; 0.5 %</div>
+            <div class="led-indicator">
+              <span class="led-dot" id="led-dot"></span>
+              <span id="led-state">ÉTEINTE</span>
+            </div>
+          </div>
+        </div>
+      </div><!-- /#calc-panel -->
+
+    </div><!-- /#circuit-section -->
+
+    <script type="module" src="main.js"></script>
+    <script type="module" src="circuit.js"></script>
+  </body>
+</html>
