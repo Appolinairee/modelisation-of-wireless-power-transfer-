@@ -102,7 +102,7 @@ export function buildWPTScene() {
   buildGBF(g, { x: C1.gbfX, y: C1.yBot + 4.5, z: 0, color0: COL.gbf });
 
   // ── R₁ ───────────────────────────────────────────────────────────
-  buildResistor(g, { x: C1.r1X, y: C1.yTop + 4, z: 0, rx: Math.PI / 2 });
+  buildResistor(g, { x: C1.r1X, y: C1.yTop, z: 0, rz: Math.PI / 2 });
 
   // ── Bobine émettrice L₁ (cuivre) ─────────────────────────────────
   // Axe de la bobine : horizontal, selon X → coil.rz=PI/2
@@ -152,12 +152,12 @@ export function buildWPTScene() {
   // └──────────────────────────────────────────────────────────────┘
 
   const C2 = {
-    coilX: 20, r2X: 38, rlX: 55,
+    coilX: 20, c2X: 31, r2X: 44, rlX: 57,
     yTop: 16, yBot: 0,
   };
 
   // Socle circuit 2
-  box(g, { w: 52, h: 0.4, d: 34, x: 38, y: -0.6, z: 0,
+  box(g, { w: 56, h: 0.4, d: 34, x: 40, y: -0.6, z: 0,
     color: 0x1a2e1e, roughness: 0.8 });
 
   // ── Bobine réceptrice L₂ (émeraude) ──────────────────────────────
@@ -169,41 +169,49 @@ export function buildWPTScene() {
     emissive: 0x004820, emissiveIntensity: 0.3,
   });
 
+  // ── C₂ (condensateur de résonance) ───────────────────────────────
+  buildCapacitor(g, { x: C2.c2X, y: C2.yTop, z: 0, rz: Math.PI / 2 });
+
   // ── R₂ ────────────────────────────────────────────────────────────
-  buildResistor(g, { x: C2.r2X, y: C2.yTop + 4, z: 0, rx: Math.PI / 2 });
+  buildResistor(g, { x: C2.r2X, y: C2.yTop, z: 0, rz: Math.PI / 2 });
 
-  // ── Rₗ (charge/LED) ──────────────────────────────────────────────
-  buildLED(g, { x: C2.rlX, y: C2.yBot + 7, z: 0, color: 0x00e060 });
+  // ── Rₗ (LED) – branche verticale droite ──────────────────────────
+  buildLED(g, { x: C2.rlX, y: 8, z: 0, color: 0x00e060 });
 
-  // ── Fils boucle circuit 2 ─────────────────────────────────────────
+  // ── Fils boucle circuit 2 — L₂ → C₂ → R₂ → Rₗ ───────────────────
   const coilTopL2  = new THREE.Vector3(C2.coilX, C2.yTop, 0);
-  const r2InL2     = new THREE.Vector3(C2.r2X - 6, C2.yTop, 0);
-  const r2OutL2    = new THREE.Vector3(C2.r2X + 6, C2.yTop, 0);
+  const c2InL2     = new THREE.Vector3(C2.c2X - 4, C2.yTop, 0);
+  const c2OutL2    = new THREE.Vector3(C2.c2X + 4, C2.yTop, 0);
+  const r2InL2     = new THREE.Vector3(C2.r2X - 5, C2.yTop, 0);
+  const r2OutL2    = new THREE.Vector3(C2.r2X + 5, C2.yTop, 0);
   const rlTopL2    = new THREE.Vector3(C2.rlX, C2.yTop, 0);
   const rlBotL2    = new THREE.Vector3(C2.rlX, C2.yBot, 0);
   const coilBotL2  = new THREE.Vector3(C2.coilX, C2.yBot, 0);
 
-  // Fil haut
-  wire(g, coilTopL2, r2InL2, COL.wire2);
+  // Fil haut : L₂ → C₂ → R₂ → Rₗ
+  wire(g, coilTopL2, c2InL2, COL.wire2);
+  wire(g, c2OutL2, r2InL2, COL.wire2);
   wire(g, r2OutL2, rlTopL2, COL.wire2);
+  // Jonctions verticales bobine
   wire(g, new THREE.Vector3(C2.coilX, 14, 0), coilTopL2, COL.wire2);
-  wire(g, rlTopL2, new THREE.Vector3(C2.rlX, C2.yTop, 0), COL.wire2);
-  // Vertical Rₗ
-  wire(g, new THREE.Vector3(C2.rlX, C2.yTop, 0), new THREE.Vector3(C2.rlX, C2.yBot + 9, 0), COL.wire2);
-  // Fil bas (retour)
-  wire(g, rlBotL2, coilBotL2, COL.wire2, 0.3);
   wire(g, new THREE.Vector3(C2.coilX, 2, 0), coilBotL2, COL.wire2, 0.3);
+  // Branche verticale LED (top → LED top, LED bottom → bas)
+  wire(g, rlTopL2, new THREE.Vector3(C2.rlX, 10.2, 0), COL.wire2);
+  wire(g, new THREE.Vector3(C2.rlX, 3, 0), rlBotL2, COL.wire2);
+  // Fil bas retour
+  wire(g, rlBotL2, coilBotL2, COL.wire2, 0.3);
 
   // Nœuds circuit 2
-  [coilTopL2, coilBotL2, rlTopL2, rlBotL2].forEach(pt => {
-    glowSphere(g, { r: 0.5, x: pt.x, y: pt.y, z: pt.z,
+  [coilTopL2, coilBotL2, rlTopL2, rlBotL2, c2InL2, c2OutL2, r2InL2, r2OutL2].forEach(pt => {
+    glowSphere(g, { r: 0.4, x: pt.x, y: pt.y, z: pt.z,
       color: COL.wire2, emissive: COL.wire2, emissiveIntensity: 0.8 });
   });
 
   // Labels circuit 2
-  addLabel3D(g, 'CIRCUIT RÉCEPTEUR', 38, 24, 0, COL.wire2);
+  addLabel3D(g, 'CIRCUIT RÉCEPTEUR', 40, 24, 0, COL.wire2);
   addLabel3D(g, 'L₂ (émeraude)', C2.coilX, 22, 0, COL.emerald);
-  addLabel3D(g, 'R₂', C2.r2X, C2.yTop + 12, 0, COL.resist);
+  addLabel3D(g, 'C₂', C2.c2X, C2.yTop + 10, 0, 0xb070e0);
+  addLabel3D(g, 'R₂', C2.r2X, C2.yTop + 10, 0, COL.resist);
   addLabel3D(g, 'Rₗ / LED', C2.rlX, 20, 0, 0x80ffb0);
 
   // ┌──────────────────────────────────────────────────────────────┐

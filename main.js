@@ -27,8 +27,8 @@ renderer.toneMappingExposure = 1.2;
 
 // ── Scène ──────────────────────────────────────────
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x060c18);
-scene.fog = new THREE.FogExp2(0x060c18, 0.0018);
+scene.background = new THREE.Color(0xf0f4fa);
+scene.fog = new THREE.FogExp2(0xdce8f5, 0.0012);
 
 // ── Caméra ─────────────────────────────────────────
 const camera = new THREE.PerspectiveCamera(
@@ -50,9 +50,9 @@ controls.maxPolarAngle  = Math.PI * 0.88;
 controls.update();
 
 // ── Lumières ───────────────────────────────────────
-scene.add(new THREE.AmbientLight(0x0a1a2e, 2.5));
+scene.add(new THREE.AmbientLight(0xffffff, 3.5));
 
-const sun = new THREE.DirectionalLight(0x8ab4d4, 2.2);
+const sun = new THREE.DirectionalLight(0xfff8f0, 3.5);
 sun.position.set(80, 160, 80);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
@@ -63,7 +63,7 @@ sun.shadow.camera.right  = sun.shadow.camera.top    =  130;
 sun.shadow.bias = -0.001;
 scene.add(sun);
 
-const fill = new THREE.DirectionalLight(0x1a3050, 0.9);
+const fill = new THREE.DirectionalLight(0xd0e8ff, 1.6);
 fill.position.set(-100, 60, -80);
 scene.add(fill);
 
@@ -85,20 +85,20 @@ scene.add(fieldLight);
 
 // LED feedback piloté par circuit.js
 const ledLight = new THREE.PointLight(0x00ff88, 0, 80);
-ledLight.position.set(55, 10, 0);
+ledLight.position.set(57, 10, 0);
 scene.add(ledLight);
 
 // ── Sol + grille ───────────────────────────────────
 const sol = new THREE.Mesh(
   new THREE.PlaneGeometry(1400, 1400),
-  new THREE.MeshStandardMaterial({ color: 0x060c18, roughness: 1.0 })
+  new THREE.MeshStandardMaterial({ color: 0xdce8f0, roughness: 1.0 })
 );
 sol.rotation.x = -Math.PI / 2;
 sol.position.y = -1.8;
 sol.receiveShadow = true;
 scene.add(sol);
 
-const grid = new THREE.GridHelper(700, 90, 0x0e2035, 0x060f1c);
+const grid = new THREE.GridHelper(700, 90, 0x9ab8d0, 0xc8dce8);
 grid.position.y = -1.5;
 scene.add(grid);
 

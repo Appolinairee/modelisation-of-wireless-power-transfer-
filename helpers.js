@@ -411,6 +411,26 @@ export function buildGBF(
       emissiveIntensity: 0.3,
     });
   }
+  // Label GBF sur façade
+  {
+    const cvs = document.createElement('canvas');
+    cvs.width = 128; cvs.height = 32;
+    const ctx = cvs.getContext('2d');
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 22px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('GBF', 64, 16);
+    const tex = new THREE.CanvasTexture(cvs);
+    const labelMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(5, 1.25),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: false })
+    );
+    labelMesh.position.set(2, 2.2, 4.12);
+    labelMesh.userData.isLabel = true;
+    g.add(labelMesh);
+  }
+
   // Borne +/-
   cyl(g, {
     r: 0.5,
